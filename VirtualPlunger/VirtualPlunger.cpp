@@ -30,8 +30,16 @@
 #include <shellapi.h>
 #include "resource.h"
 
+#include "public.h"
+#include <malloc.h>
+#include <string.h>
+#include <stdlib.h>
+#include "vjoyinterface.h"
+#include "Math.h"
 
 
+// Default device ID (Used when ID not specified)
+#define DEV_ID		1
 
 
 //-----------------------------------------------------------------------------
@@ -41,8 +49,26 @@ INT_PTR CALLBACK MainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK    EnumObjectsCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);
 BOOL CALLBACK    EnumJoysticksCallback(const DIDEVICEINSTANCE* pdidInstance, VOID* pContext);
 HRESULT InitDirectInput(HWND hDlg);
+HRESULT InitVirtualDevice(HWND hDlg);
 VOID FreeDirectInput();
 HRESULT UpdateInputState(HWND hDlg);
+HRESULT UpdateVJoy(long Z);
+
+
+//vjoy
+int  Polar2Deg(BYTE Polar);
+int  Byte2Percent(BYTE InByte);
+int TwosCompByte2Int(BYTE in);
+
+
+int ffb_direction = 0;
+int ffb_strenght = 0;
+int serial_result = 0;
+
+
+JOYSTICK_POSITION_V2 iReport; // The structure that holds the full position data
+
+
 
 // Stuff to filter out XInput devices
 #include <wbemidl.h>
@@ -137,6 +163,12 @@ INT_PTR CALLBACK MainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 				TEXT("DirectInput Sample"), MB_ICONERROR | MB_OK);
 			EndDialog(hDlg, 0);
 		}
+		if (FAILED(InitVirtualDevice(hDlg)))
+		{
+			MessageBox(nullptr, TEXT("Error Initializing Virtual Device"),
+				TEXT("DirectInput Sample"), MB_ICONERROR | MB_OK);
+			EndDialog(hDlg, 0);
+		}
 
 		// Set a timer to go off 30 times a second. At every timer message
 		// the input device will be read
@@ -181,7 +213,72 @@ INT_PTR CALLBACK MainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 	return FALSE; // Message not handled 
 }
 
+//-----------------------------------------------------------------------------
+// Name: InitVirtualDevice()
+// Desc: Initialize the DirectInput variables.
+//-----------------------------------------------------------------------------
+HRESULT InitVirtualDevice(HWND hDlg)
+{
+	UINT DevID = DEV_ID;
+	USHORT Z = 0;
 
+
+	UINT	IoCode = LOAD_POSITIONS;
+	UINT	IoSize = sizeof(JOYSTICK_POSITION);
+	// HID_DEVICE_ATTRIBUTES attrib;
+	BYTE id = 1;
+	UINT iInterface = 1;
+
+	// Get the driver attributes (Vendor ID, Product ID, Version Number)
+	if (!vJoyEnabled())
+	{
+		wprintf(L"Function vJoyEnabled Failed - make sure that vJoy is installed and enabled");
+		int dummy = getchar();
+		return -1;
+	}
+	else
+	{
+		wprintf(L"Vendor: %s\nProduct :%s\nVersion Number:%s\n", static_cast<TCHAR *> (GetvJoyManufacturerString()), static_cast<TCHAR *>(GetvJoyProductString()), static_cast<TCHAR *>(GetvJoySerialNumberString()));
+	};
+
+	// Get the status of the vJoy device before trying to acquire it
+	VjdStat status = GetVJDStatus(DevID);
+
+	switch (status)
+	{
+	case VJD_STAT_OWN:
+		wprintf(L"vJoy device %d is already owned by this feeder\n", DevID);
+		break;
+	case VJD_STAT_FREE:
+		wprintf(L"vJoy device %d is free\n", DevID);
+		break;
+	case VJD_STAT_BUSY:
+		wprintf(L"vJoy device %d is already owned by another feeder\nCannot continue\n", DevID);
+		return -3;
+	case VJD_STAT_MISS:
+		wprintf(L"vJoy device %d is not installed or disabled\nCannot continue\n", DevID);
+		return -4;
+	default:
+		wprintf(L"vJoy device %d general error\nCannot continue\n", DevID);
+		return -1;
+	};
+
+	// Acquire the vJoy device
+	if (!AcquireVJD(DevID))
+	{
+		wprintf(L"Failed to acquire vJoy device number %d.\n", DevID);
+		int dummy = getchar();
+		return -1;
+	}
+	else
+		wprintf(L"Acquired device number %d - OK\n", DevID);
+	
+	//Disable Force Feedback
+	vJoyFfbCap(false);
+	ResetVJD(DevID);
+
+	return 0;
+}
 
 
 //-----------------------------------------------------------------------------
@@ -247,7 +344,7 @@ HRESULT InitDirectInput(HWND hDlg)
 	// Set the cooperative level to let DInput know how this device should
 	// interact with the system and with other DInput applications.
 	if (FAILED(hr = g_pJoystick->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE |
-		DISCL_FOREGROUND)))
+		DISCL_BACKGROUND)))
 		return hr;
 
 	// Enumerate the joystick objects. The callback function enabled user
@@ -479,8 +576,8 @@ BOOL CALLBACK EnumObjectsCallback(const DIDEVICEOBJECTINSTANCE* pdidoi,
 		diprg.diph.dwHeaderSize = sizeof(DIPROPHEADER);
 		diprg.diph.dwHow = DIPH_BYID;
 		diprg.diph.dwObj = pdidoi->dwType; // Specify the enumerated axis
-		diprg.lMin = -1000;
-		diprg.lMax = +1000;
+		diprg.lMin = -32768/2;
+		diprg.lMax = 0;
 
 		// Set the range for the axis
 		if (FAILED(g_pJoystick->SetProperty(DIPROP_RANGE, &diprg.diph)))
@@ -490,75 +587,10 @@ BOOL CALLBACK EnumObjectsCallback(const DIDEVICEOBJECTINSTANCE* pdidoi,
 
 
 	// Set the UI to reflect what objects the joystick supports
-	if (pdidoi->guidType == GUID_XAxis)
-	{
-		EnableWindow(GetDlgItem(hDlg, IDC_X_AXIS), TRUE);
-		EnableWindow(GetDlgItem(hDlg, IDC_X_AXIS_TEXT), TRUE);
-	}
-	if (pdidoi->guidType == GUID_YAxis)
-	{
-		EnableWindow(GetDlgItem(hDlg, IDC_Y_AXIS), TRUE);
-		EnableWindow(GetDlgItem(hDlg, IDC_Y_AXIS_TEXT), TRUE);
-	}
 	if (pdidoi->guidType == GUID_ZAxis)
 	{
 		EnableWindow(GetDlgItem(hDlg, IDC_Z_AXIS), TRUE);
 		EnableWindow(GetDlgItem(hDlg, IDC_Z_AXIS_TEXT), TRUE);
-	}
-	if (pdidoi->guidType == GUID_RxAxis)
-	{
-		EnableWindow(GetDlgItem(hDlg, IDC_X_ROT), TRUE);
-		EnableWindow(GetDlgItem(hDlg, IDC_X_ROT_TEXT), TRUE);
-	}
-	if (pdidoi->guidType == GUID_RyAxis)
-	{
-		EnableWindow(GetDlgItem(hDlg, IDC_Y_ROT), TRUE);
-		EnableWindow(GetDlgItem(hDlg, IDC_Y_ROT_TEXT), TRUE);
-	}
-	if (pdidoi->guidType == GUID_RzAxis)
-	{
-		EnableWindow(GetDlgItem(hDlg, IDC_Z_ROT), TRUE);
-		EnableWindow(GetDlgItem(hDlg, IDC_Z_ROT_TEXT), TRUE);
-	}
-	if (pdidoi->guidType == GUID_Slider)
-	{
-		switch (nSliderCount++)
-		{
-		case 0:
-			EnableWindow(GetDlgItem(hDlg, IDC_SLIDER0), TRUE);
-			EnableWindow(GetDlgItem(hDlg, IDC_SLIDER0_TEXT), TRUE);
-			break;
-
-		case 1:
-			EnableWindow(GetDlgItem(hDlg, IDC_SLIDER1), TRUE);
-			EnableWindow(GetDlgItem(hDlg, IDC_SLIDER1_TEXT), TRUE);
-			break;
-		}
-	}
-	if (pdidoi->guidType == GUID_POV)
-	{
-		switch (nPOVCount++)
-		{
-		case 0:
-			EnableWindow(GetDlgItem(hDlg, IDC_POV0), TRUE);
-			EnableWindow(GetDlgItem(hDlg, IDC_POV0_TEXT), TRUE);
-			break;
-
-		case 1:
-			EnableWindow(GetDlgItem(hDlg, IDC_POV1), TRUE);
-			EnableWindow(GetDlgItem(hDlg, IDC_POV1_TEXT), TRUE);
-			break;
-
-		case 2:
-			EnableWindow(GetDlgItem(hDlg, IDC_POV2), TRUE);
-			EnableWindow(GetDlgItem(hDlg, IDC_POV2_TEXT), TRUE);
-			break;
-
-		case 3:
-			EnableWindow(GetDlgItem(hDlg, IDC_POV3), TRUE);
-			EnableWindow(GetDlgItem(hDlg, IDC_POV3_TEXT), TRUE);
-			break;
-		}
 	}
 
 	return DIENUM_CONTINUE;
@@ -605,49 +637,21 @@ HRESULT UpdateInputState(HWND hDlg)
 	// Display joystick state to dialog
 
 	// Axes
-	_stprintf_s(strText, 512, TEXT("%ld"), js.lX);
-	SetWindowText(GetDlgItem(hDlg, IDC_X_AXIS), strText);
-	_stprintf_s(strText, 512, TEXT("%ld"), js.lY);
-	SetWindowText(GetDlgItem(hDlg, IDC_Y_AXIS), strText);
-	_stprintf_s(strText, 512, TEXT("%ld"), js.lZ);
+	long Z = js.lZ * -1;
+	UpdateVJoy(Z);
+	_stprintf_s(strText, 512, TEXT("%ld"), Z);
 	SetWindowText(GetDlgItem(hDlg, IDC_Z_AXIS), strText);
-	_stprintf_s(strText, 512, TEXT("%ld"), js.lRx);
-	SetWindowText(GetDlgItem(hDlg, IDC_X_ROT), strText);
-	_stprintf_s(strText, 512, TEXT("%ld"), js.lRy);
-	SetWindowText(GetDlgItem(hDlg, IDC_Y_ROT), strText);
-	_stprintf_s(strText, 512, TEXT("%ld"), js.lRz);
-	SetWindowText(GetDlgItem(hDlg, IDC_Z_ROT), strText);
 
-	// Slider controls
-	_stprintf_s(strText, 512, TEXT("%ld"), js.rglSlider[0]);
-	SetWindowText(GetDlgItem(hDlg, IDC_SLIDER0), strText);
-	_stprintf_s(strText, 512, TEXT("%ld"), js.rglSlider[1]);
-	SetWindowText(GetDlgItem(hDlg, IDC_SLIDER1), strText);
+	return S_OK;
+}
 
-	// Points of view
-	_stprintf_s(strText, 512, TEXT("%lu"), js.rgdwPOV[0]);
-	SetWindowText(GetDlgItem(hDlg, IDC_POV0), strText);
-	_stprintf_s(strText, 512, TEXT("%lu"), js.rgdwPOV[1]);
-	SetWindowText(GetDlgItem(hDlg, IDC_POV1), strText);
-	_stprintf_s(strText, 512, TEXT("%lu"), js.rgdwPOV[2]);
-	SetWindowText(GetDlgItem(hDlg, IDC_POV2), strText);
-	_stprintf_s(strText, 512, TEXT("%lu"), js.rgdwPOV[3]);
-	SetWindowText(GetDlgItem(hDlg, IDC_POV3), strText);
-
-
-	// Fill up text with which buttons are pressed
-	_tcscpy_s(strText, 512, TEXT(""));
-	for (int i = 0; i < 128; i++)
-	{
-		if (js.rgbButtons[i] & 0x80)
-		{
-			TCHAR sz[128];
-			_stprintf_s(sz, 128, TEXT("%02d "), i);
-			_tcscat_s(strText, 512, sz);
-		}
-	}
-
-	SetWindowText(GetDlgItem(hDlg, IDC_BUTTONS), strText);
+//-----------------------------------------------------------------------------
+// Name: UpdateVJoy()
+// Desc: Update the VJoy device
+//-----------------------------------------------------------------------------
+HRESULT UpdateVJoy(long Z)
+{
+	SetAxis(Z, 1, HID_USAGE_Z);
 
 	return S_OK;
 }

@@ -21,6 +21,12 @@
     <ClInclude Include="VirtualPlunger.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="vjoyinterface.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="public.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VirtualPlunger.cpp">
@@ -36,5 +42,8 @@
     <Image Include="VirtualPlunger.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\amd64\vJoyInterface.lib" />
   </ItemGroup>
 </Project>

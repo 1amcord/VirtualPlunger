@@ -145,12 +145,14 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dinput8.lib;dxguid.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dinput8.lib;dxguid.lib;comctl32.lib;Setupapi.lib;vJoyInterface.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="public.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="VirtualPlunger.h" />
+    <ClInclude Include="vjoyinterface.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VirtualPlunger.cpp" />
@@ -160,6 +162,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="VirtualPlunger.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\amd64\vJoyInterface.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
