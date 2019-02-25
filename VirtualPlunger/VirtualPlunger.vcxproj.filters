@@ -42,6 +42,9 @@
     <Image Include="VirtualPlunger.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
+    <Image Include="directx.ico">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Library Include="lib\amd64\vJoyInterface.lib" />

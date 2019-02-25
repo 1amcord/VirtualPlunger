@@ -161,6 +161,7 @@
     <ResourceCompile Include="VirtualPlunger.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="directx.ico" />
     <Image Include="VirtualPlunger.ico" />
   </ItemGroup>
   <ItemGroup>

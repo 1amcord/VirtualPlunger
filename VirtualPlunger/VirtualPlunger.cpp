@@ -576,13 +576,12 @@ BOOL CALLBACK EnumObjectsCallback(const DIDEVICEOBJECTINSTANCE* pdidoi,
 		diprg.diph.dwHeaderSize = sizeof(DIPROPHEADER);
 		diprg.diph.dwHow = DIPH_BYID;
 		diprg.diph.dwObj = pdidoi->dwType; // Specify the enumerated axis
-		diprg.lMin = -32768/2;
+		diprg.lMin = -16384;
 		diprg.lMax = 0;
 
 		// Set the range for the axis
 		if (FAILED(g_pJoystick->SetProperty(DIPROP_RANGE, &diprg.diph)))
 			return DIENUM_STOP;
-
 	}
 
 
