@@ -7,7 +7,7 @@ Fixes the Z-Axis issue for arduino-based controllerboards (e.g. Pincontrol) in c
 1. Install  http://vjoystick.sourceforge.net/site/index.php/download-a-install/download
 2. Download the latest release and put the two files **VirtualPlunger.exe** and **vJoyInterface.dll** into a separate folder (e.g. c:\VirtualPlunger)
 3. Run VirtualPlunger.exe
-4. Configure x360ce as described in the following pictures
+4. Configure **vJoy** and **x360ce** as described in the following pictures
 
 ![Step 1](https://github.com/1amcord/VirtualPlunger/blob/master/res/devicemanager_1.png)
 
