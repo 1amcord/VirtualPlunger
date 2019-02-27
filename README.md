@@ -8,6 +8,7 @@ Fixes the Z-Axis issue for arduino-based controllerboards (e.g. Pincontrol) in c
 2. Download the latest release and put the two files **VirtualPlunger.exe** and **vJoyInterface.dll** into a separate folder (e.g. c:\VirtualPlunger)
 3. Run VirtualPlunger.exe
 4. Configure **vJoy** and **x360ce** as described in the following pictures
+5. Make sure **VirtualPlunger.exe** starts automatically after login or before each launch of a Pinball FX-table.
 
 ![Step 1](https://github.com/1amcord/VirtualPlunger/blob/master/res/devicemanager_1.png)
 
