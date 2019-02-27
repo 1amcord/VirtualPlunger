@@ -1,5 +1,6 @@
 # VirtualPlunger
-Fix the Z-Axis issue that arduino-based Pincontrol-Controllers have with x360ce program
+
+Fixes the Z-Axis issue for arduino-based controllerboards (e.g. Pincontrol) in combination with x360ce.
 
 # Installation
 
