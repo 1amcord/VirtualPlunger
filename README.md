@@ -8,9 +8,9 @@ Fix the Z-Axis issue that arduino-based Pincontrol-Controllers have with x360ce 
 3. Run VirtualPlunger.exe
 4. Configure x360ce as described in the following pictures
 
-![Step 1](https://github.com/1amcord/VirtualPlunger/blob/master/res/devicemanager_1.PNG)
+![Step 1](https://github.com/1amcord/VirtualPlunger/blob/master/res/devicemanager_1.png)
 
-![Step 2](https://github.com/1amcord/VirtualPlunger/blob/master/res/devicemanager_2.PNG)
+![Step 2](https://github.com/1amcord/VirtualPlunger/blob/master/res/devicemanager_2.png)
 
 ![Step 3](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_1_options.PNG)
 
