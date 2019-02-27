@@ -60,10 +60,9 @@ int  Polar2Deg(BYTE Polar);
 int  Byte2Percent(BYTE InByte);
 int TwosCompByte2Int(BYTE in);
 
-
-int ffb_direction = 0;
-int ffb_strenght = 0;
 int serial_result = 0;
+int g_last_z_state = 0;
+bool g_debug = false;
 
 
 JOYSTICK_POSITION_V2 iReport; // The structure that holds the full position data
@@ -133,18 +132,20 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ 
 				g_bFilterOutXinputDevices = true;
 				continue;
 			}
+			nArgLen = (int)wcslen(L"debug");
+			if (_wcsnicmp(strCmdLine, L"debug", nArgLen) == 0 && strCmdLine[nArgLen] == 0)
+			{
+				g_debug = true;
+				continue;
+			}
 		}
 	}
 	LocalFree(pstrArgList);
 
 	// Display the main dialog box.
 	DialogBox(hInst, MAKEINTRESOURCE(IDD_JOYST_IMM), nullptr, MainDlgProc);
-
 	return 0;
 }
-
-
-
 
 //-----------------------------------------------------------------------------
 // Name: MainDialogProc
@@ -170,9 +171,9 @@ INT_PTR CALLBACK MainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 			EndDialog(hDlg, 0);
 		}
 
-		// Set a timer to go off 30 times a second. At every timer message
+		// Set a timer to go off 240 times a second. At every timer message
 		// the input device will be read
-		SetTimer(hDlg, 0, 1000 / 30, nullptr);
+		SetTimer(hDlg, 0, 1000 / 240, nullptr);
 		return TRUE;
 
 	case WM_ACTIVATE:
@@ -181,6 +182,15 @@ INT_PTR CALLBACK MainDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 			// Make sure the device is acquired, if we are gaining focus.
 			g_pJoystick->Acquire();
 		}
+
+		//Hide Debug-Window
+		if (g_debug == false) {
+			SetFocus(hDlg);
+			ShowWindow(hDlg, SW_MINIMIZE);
+			ShowWindow(hDlg, SW_HIDE);
+			ShowWindow(hDlg, SW_HIDE);
+		}
+
 		return TRUE;
 
 	case WM_TIMER:
@@ -272,7 +282,7 @@ HRESULT InitVirtualDevice(HWND hDlg)
 	}
 	else
 		wprintf(L"Acquired device number %d - OK\n", DevID);
-	
+
 	//Disable Force Feedback
 	vJoyFfbCap(false);
 	ResetVJD(DevID);
@@ -637,9 +647,14 @@ HRESULT UpdateInputState(HWND hDlg)
 
 	// Axes
 	long Z = js.lZ * -1;
-	UpdateVJoy(Z);
-	_stprintf_s(strText, 512, TEXT("%ld"), Z);
-	SetWindowText(GetDlgItem(hDlg, IDC_Z_AXIS), strText);
+	if (Z != g_last_z_state) {
+		UpdateVJoy(Z);
+		if (g_debug == true) {
+			_stprintf_s(strText, 512, TEXT("%ld"), Z);
+			SetWindowText(GetDlgItem(hDlg, IDC_Z_AXIS), strText);
+		}
+		g_last_z_state = Z;
+	}
 
 	return S_OK;
 }
