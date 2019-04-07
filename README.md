@@ -22,7 +22,7 @@ Fixes the Z-Axis issue for arduino-based controllerboards (e.g. Pincontrol) in c
 ![Step 6](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_4_controller2.PNG)
 
 6. Make sure **VirtualPlunger.exe** starts automatically after login or before each launch of a Pinball FX-table.
-- Add this to the Launch-Script for Pinball FX3 to start VirtualPlunger.exe in Pinball FX3 only:
+- If you are using **PinUp System**, add this to the Launch-Script for **Pinball FX3** to start VirtualPlunger.exe in Pinball FX3 only:
 
 ```bat
 rem Start VirtualPlunger.exe if not already running
@@ -30,7 +30,7 @@ set PATH_TO_VIRTUALPLUNGER=c:\VirtualPlunger
 set VIRTUALPLUNGER=VirtualPlunger.exe
 tasklist /nh /fi "imagename eq %VIRTUALPLUNGER%" | find /i "%VIRTUALPLUNGER%" > nul || (start "" "%PATH_TO_VIRTUALPLUNGER%\%VIRTUALPLUNGER%")
 ```
-- Add this to the Launch-Script for Visual Pinball to stop VirtualPlunger.exe in Visual Pinball:
+-For **PinUp System**: Add this to the Launch-Script for **Visual Pinball** to stop VirtualPlunger.exe in Visual Pinball:
 
 ```bat
 rem stop VirtualPlunger.exe if running
