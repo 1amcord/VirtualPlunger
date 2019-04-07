@@ -1,20 +1,31 @@
 # VirtualPlunger
-Fix the Z-Axis issue that arduino-based Pincontrol-Controllers have with x360ce program
 
-# Installation Instructions
+Fixes the Z-Axis issue for arduino-based controllerboards (e.g. Pincontrol) in combination with x360ce.
+
+# Installation
 
 1. Install  http://vjoystick.sourceforge.net/site/index.php/download-a-install/download
-2. Download [VirtualPlunger.exe](https://github.com/1amcord/VirtualPlunger/blob/master/x64/Release/VirtualPlunger.exe) and [vJoyInterface.dll](https://github.com/1amcord/VirtualPlunger/blob/master/x64/Release/vJoyInterface.dll) and put them into separate folder (e.g. c:\VirtualPlunger)
-3. Configure x360ce as described in the following pictures
+2. Reboot
+3. Download the latest release and put the two files **VirtualPlunger.exe** and **vJoyInterface.dll** into a separate folder (e.g. c:\VirtualPlunger)
+4. Run VirtualPlunger.exe
+5. Configure **vJoy** and **x360ce** as described in the following pictures
+6. Make sure **VirtualPlunger.exe** starts automatically after login or before each launch of a Pinball FX-table.
 
-![Step 1](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_1_options.PNG)
+![Step 1](https://github.com/1amcord/VirtualPlunger/blob/master/res/devicemanager_1.png)
 
-![Step 2](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_2_controller1.PNG)
+![Step 2](https://github.com/1amcord/VirtualPlunger/blob/master/res/devicemanager_2.png)
 
-![Step 3](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_3_controller1_right_thumb.PNG)
+![Step 3](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_1_options.PNG)
 
-![Step 4](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_4_controller2.PNG)
+![Step 4](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_2_controller1.PNG)
 
+![Step 5](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_3_controller1_right_thumb.PNG)
+
+![Step 6](https://github.com/1amcord/VirtualPlunger/blob/master/res/x360ce_4_controller2.PNG)
+
+# Debug
+
+<<<<<<< HEAD
 4. Avoid conflict with Plunger in Virtual Pinball
 - Add this to the Launch-Script for Pinball FX3 to start VirtualPlunger.exe in Pinball FX3 only:
 ```bat
@@ -27,6 +38,9 @@ tasklist /nh /fi "imagename eq %VIRTUALPLUNGER%" | find /i "%VIRTUALPLUNGER%" > 
 ```bat
 rem stop VirtualPlunger.exe if running
 taskkill /F /IM VirtualPlunger.exe```
+=======
+Run VirtualPlunger.exe with /debug to get a window that shows Z-Axis values.
+>>>>>>> ab61563510d947b0c5ff7353c4528e752ce1c74e
 
 # Idea
 
