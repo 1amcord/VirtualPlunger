@@ -25,7 +25,6 @@ Fixes the Z-Axis issue for arduino-based controllerboards (e.g. Pincontrol) in c
 
 # Debug
 
-<<<<<<< HEAD
 4. Avoid conflict with Plunger in Virtual Pinball
 - Add this to the Launch-Script for Pinball FX3 to start VirtualPlunger.exe in Pinball FX3 only:
 ```bat
@@ -38,9 +37,6 @@ tasklist /nh /fi "imagename eq %VIRTUALPLUNGER%" | find /i "%VIRTUALPLUNGER%" > 
 ```bat
 rem stop VirtualPlunger.exe if running
 taskkill /F /IM VirtualPlunger.exe```
-=======
-Run VirtualPlunger.exe with /debug to get a window that shows Z-Axis values.
->>>>>>> ab61563510d947b0c5ff7353c4528e752ce1c74e
 
 # Idea
 
